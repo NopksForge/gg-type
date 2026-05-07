@@ -100,8 +100,9 @@ function TopBar({ mode, pack, lang, accent, status, runId, timeLeft, totalTime, 
 }
 
 function useClock() {
-  const [t, setT] = useState(() => formatTime(new Date()));
+  const [t, setT] = useState('');
   useEffect(() => {
+    setT(formatTime(new Date()));
     const id = setInterval(() => setT(formatTime(new Date())), 1000);
     return () => clearInterval(id);
   }, []);
@@ -113,11 +114,11 @@ const formatTime = (d: Date) =>
 // ── PlayerPanel ───────────────────────────────────────────────────────────────
 
 interface PlayerPanelProps {
-  mode: Mode; accent: string; wpm: number; acc: number; sentences: number;
+  accent: string; wpm: number; acc: number; sentences: number;
   errors: number; timeLeft: number; totalTime: number; phase: string;
 }
 
-function PlayerPanel({ mode, accent, wpm, acc, sentences, errors, timeLeft, totalTime, phase }: PlayerPanelProps) {
+function PlayerPanel({ accent, wpm, acc, sentences, errors, timeLeft, totalTime, phase }: PlayerPanelProps) {
   const progress = totalTime > 0 ? (1 - timeLeft / totalTime) : 0;
   return (
     <aside className="pnl pnl--l">
@@ -193,10 +194,10 @@ function PlayerPanel({ mode, accent, wpm, acc, sentences, errors, timeLeft, tota
 // ── HistoryPanel ──────────────────────────────────────────────────────────────
 
 interface HistoryPanelProps {
-  history: HistoryEntry[]; mode: Mode; accent: string; onClear: () => void;
+  history: HistoryEntry[]; accent: string; onClear: () => void;
 }
 
-function HistoryPanel({ history, mode, accent, onClear }: HistoryPanelProps) {
+function HistoryPanel({ history, accent, onClear }: HistoryPanelProps) {
   const best = history.reduce<HistoryEntry | null>((b, h) => h.wpm > (b?.wpm ?? 0) ? h : b, null);
   const avgWpm = history.length === 0 ? 0 : history.reduce((s, h) => s + h.wpm, 0) / history.length;
   const avgAcc = history.length === 0 ? 0 : history.reduce((s, h) => s + h.acc, 0) / history.length;
@@ -351,39 +352,6 @@ function Compose({ prompt, typed, onChange, onSubmit, focused, onFocus, mode, fi
         onKeyDown={onKey}
         disabled={finished || locked}
       />
-    </div>
-  );
-}
-
-// ── StatTiles ─────────────────────────────────────────────────────────────────
-
-function StatTiles({ wpm, acc, sentences, errors, mode }: {
-  wpm: number; acc: number; sentences: number; errors: number; mode: Mode;
-}) {
-  return (
-    <div className="tiles">
-      <div className="tile">
-        <div className="tile__l">WPM</div>
-        <div className="tile__v">{Math.round(wpm)}</div>
-        <div className="tile__sp"><i style={{ width: `${Math.min(100, wpm)}%` }} /></div>
-      </div>
-      <div className="tile">
-        <div className="tile__l">ACCURACY</div>
-        <div className="tile__v">{Math.round(acc)}<small>%</small></div>
-        <div className="tile__sp"><i style={{ width: `${acc}%` }} /></div>
-      </div>
-      <div className="tile">
-        <div className="tile__l">SENT</div>
-        <div className="tile__v">{sentences}</div>
-        <div className="tile__sub">messages sent</div>
-      </div>
-      <div className="tile tile--err">
-        <div className="tile__l">ERRORS</div>
-        <div className="tile__v">{errors}</div>
-        <div className="tile__sub">
-          {mode === 'rage' && errors > 0 ? '↑ shame index rising' : 'looking good'}
-        </div>
-      </div>
     </div>
   );
 }
@@ -576,11 +544,15 @@ export default function GGTypeApp() {
   const [chat, setChat] = useState<ChatMessage[]>([]);
   const [autoRageFlipped, setAutoRageFlipped] = useState(false);
   const [shake, setShake] = useState(false);
-  const [history, setHistory] = useState<HistoryEntry[]>(() => {
-    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
-    catch { return []; }
-  });
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved: HistoryEntry[] = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      if (saved.length > 0) setHistory(saved);
+    } catch { /* noop */ }
+  }, []);
 
   const duration = t.duration || 30;
   const timeLeft = startedAt && phase === 'play'
@@ -797,7 +769,7 @@ export default function GGTypeApp() {
               running={phase === 'play'} />
 
       <main className="gg-main">
-        <PlayerPanel mode={t.mode} accent={accent}
+        <PlayerPanel accent={accent}
                      wpm={wpm} acc={acc} sentences={sentencesSent} errors={errors}
                      timeLeft={timeLeft} totalTime={duration} phase={phase} />
 
@@ -836,7 +808,7 @@ export default function GGTypeApp() {
           )}
         </section>
 
-        <HistoryPanel history={history} mode={t.mode} accent={accent} onClear={clearHistory} />
+        <HistoryPanel history={history} accent={accent} onClear={clearHistory} />
       </main>
 
       <footer className="gg-footer">
