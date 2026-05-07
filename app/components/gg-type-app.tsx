@@ -585,6 +585,7 @@ export default function GGTypeApp() {
       const id = setTimeout(() => {
         setPhase('play');
         setStartedAt(performance.now());
+        setFocused(true);
       }, 600);
       return () => clearTimeout(id);
     }
