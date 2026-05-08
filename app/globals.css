@@ -267,6 +267,16 @@ body {
 .gate__chip { appearance: none; cursor: pointer; font-family: var(--font-mono); font-size: 13px; font-weight: 600; padding: 9px 14px; background: rgba(255,255,255,.02); border: 1px solid var(--gg-hairline); color: var(--gg-text); letter-spacing: .06em; transition: all .15s; }
 .gate__chip:hover { border-color: var(--gg-accent); }
 .gate__chip.is-on { border-color: var(--gg-accent); color: var(--gg-accent); background: color-mix(in srgb, var(--gg-accent) 8%, transparent); }
+.gate__chip.is-disabled,
+.gate__chip:disabled {
+  filter: blur(1.4px) saturate(.35);
+  opacity: .32;
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: color-mix(in srgb, var(--gg-hairline) 85%, transparent);
+  color: color-mix(in srgb, var(--gg-text) 35%, transparent);
+  text-shadow: none;
+}
 .gate__chip small { font-size: 10px; color: var(--gg-dim); margin-left: 1px; }
 .gate__chip--game { flex: 1; min-width: 120px; text-align: center; }
 

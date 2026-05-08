@@ -426,13 +426,14 @@ function SettingsGate({ defaults, onStart }: {
             <label>GAME · WORD POOL</label>
             <div className="gate__chips gate__chips--game">
               {([
-                { v: 'overwatch', l: 'Overwatch' },
-                { v: 'dota2', l: 'Dota 2' },
-                { v: 'lol', l: 'League of Legends' },
+                { v: 'overwatch', l: 'Overwatch', disabled: false },
+                { v: 'dota2', l: 'Dota 2', disabled: true },
+                { v: 'lol', l: 'League of Legends', disabled: true },
               ] as const).map(o => (
                 <button key={o.v} type="button"
-                        className={`gate__chip gate__chip--game ${pack === o.v ? 'is-on' : ''}`}
-                        onClick={() => setPack(o.v)}>{o.l}</button>
+                        className={`gate__chip gate__chip--game ${pack === o.v ? 'is-on' : ''} ${o.disabled ? 'is-disabled' : ''}`}
+                        onClick={() => !o.disabled && setPack(o.v)}
+                        disabled={o.disabled}>{o.l}</button>
               ))}
             </div>
           </div>
