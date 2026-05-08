@@ -527,6 +527,8 @@ export default function GGTypeApp() {
   const accent = t.theme[1];
   const bg = t.theme[0];
   const panel = t.theme[2];
+  const DESKTOP_MIN_WIDTH = 1024;
+  const [isMobileWidth, setIsMobileWidth] = useState(false);
 
   type Phase = 'menu' | 'countdown' | 'play' | 'done';
   const [phase, setPhase] = useState<Phase>('menu');
@@ -553,6 +555,13 @@ export default function GGTypeApp() {
       const saved: HistoryEntry[] = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
       if (saved.length > 0) setHistory(saved);
     } catch { /* noop */ }
+  }, []);
+
+  useEffect(() => {
+    const checkViewport = () => setIsMobileWidth(window.innerWidth < DESKTOP_MIN_WIDTH);
+    checkViewport();
+    window.addEventListener('resize', checkViewport);
+    return () => window.removeEventListener('resize', checkViewport);
   }, []);
 
   const duration = t.duration || 30;
@@ -757,6 +766,29 @@ export default function GGTypeApp() {
   const isMenu = phase === 'menu';
   const isCountdown = phase === 'countdown';
   const isDone = phase === 'done';
+
+  if (isMobileWidth) {
+    return (
+      <div className={`gg-root gg-root--${t.mode}`}
+           style={{ '--gg-bg': bg, '--gg-accent': accent, '--gg-panel': panel } as React.CSSProperties}>
+        <div className="gg-grid-bg" />
+        <div className="gg-scan-bg" />
+        <main className="gg-main" style={{ display: 'grid', placeItems: 'center' }}>
+          <section className="results" style={{ position: 'relative', inset: 'auto', width: 'min(680px, 92vw)' }}>
+            <div className="results__card">
+              <div className="results__title">Desktop Only</div>
+              <p className="results__sub" style={{ marginTop: 10 }}>
+                GGType is currently disabled on mobile screens.
+              </p>
+              <p className="results__sub">
+                Please play on desktop (minimum width {DESKTOP_MIN_WIDTH}px).
+              </p>
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className={`gg-root gg-root--${t.mode} ${shake ? 'gg-shake' : ''}`}
